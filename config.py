@@ -1,0 +1,8 @@
+ROWS = 15
+COLUMNS = 17
+
+TILE_SIZE = 35  # in pixels
+TOP = 243
+LEFT = 339
+
+MOVE_INTERVAL = 0.135 
