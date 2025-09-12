@@ -17,36 +17,54 @@ class Agent:
 
     def compute(self, apple, snake):
         """
-            Compute the path from the snake's head to the apple using BFS.
+            Compute the path from the snake's head to the apple using BFS,
+            considering that the snake's tail moves over time.
 
             :param apple: Tuple (row, col) of the apple's position.
             :param snake: Snake object representing the current snake state.
             :return: List of directions ('up', 'down', 'left', 'right') to reach the apple.
         """
 
-        parent = [[None for _ in range(self.columns)] for _ in range(self.rows)]
         head = snake.getHead()
-        body = set(snake.getBody())
+        body = list(snake.getBody())  # keep order: head -> tail
 
-        q = deque([head])
+        parent = {head: None}
+        q = deque([(head, 0)])  # (position, depth)
 
         while q:
-            ci, cj = q.popleft()
+            (ci, cj), depth = q.popleft()
 
             for di, dj in moves:
                 ni, nj = ci + di, cj + dj
+                nxt = (ni, nj)
 
-                if 0 <= ni < self.rows and 0 <= nj < self.columns and parent[ni][nj] is None and (ni, nj) not in body:
-                    parent[ni][nj] = (ci, cj)
-                    q.append((ni, nj))
+                # out of bounds
+                if not (0 <= ni < self.rows and 0 <= nj < self.columns):
+                    continue
 
-        pathDirections = []
-        cur = apple
+                # simulate that the tail frees cells after `depth` moves
+                if depth < len(body) - 1:
+                    future_blocked = set(body[:len(body) - depth])
+                else:
+                    future_blocked = {head}
 
-        while cur != head:
-            pi, pj = parent[cur[0]][cur[1]]
-            pathDirections.append(pathMap[(cur[0] - pi, cur[1] - pj)])
-            cur = (pi, pj)
+                if nxt in future_blocked or nxt in parent:
+                    continue
 
-        pathDirections.reverse()
-        return pathDirections
+                parent[nxt] = (ci, cj)
+                if nxt == apple:
+                    # reconstruct path
+                    pathDirections = []
+                    cur = apple
+
+                    while cur != head:
+                        pi, pj = parent[cur]
+                        pathDirections.append(pathMap[(cur[0] - pi, cur[1] - pj)])
+                        cur = (pi, pj)
+
+                    pathDirections.reverse()
+                    return pathDirections
+
+                q.append(((ni, nj), depth + 1))
+
+        return []  # no path found
