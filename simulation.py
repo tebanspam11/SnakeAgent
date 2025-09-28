@@ -1,5 +1,5 @@
 import random
-import statistics   # Para media y desviación estándar
+import statistics  
 
 from Snake import Snake
 from Agent import Agent
@@ -29,13 +29,11 @@ class Game:
         dx, dy = directionMap[direction]
         newHead = (head[0] + dx, head[1] + dy)
 
-        # colisiones
         if (newHead[0] < 0 or newHead[0] >= self.rows or
             newHead[1] < 0 or newHead[1] >= self.cols or
             newHead in self.snake.getBody()):
             return False
 
-        # comer manzana o avanzar
         if newHead == self.apple:
             self.snake.move(newHead, grow=True)
             self.apple = self.spawnApple()
@@ -48,16 +46,11 @@ class Game:
 
 
 def simulate_once(rows, cols, agent, time_limit=120.0):
-    """
-    Simula una partida.
-    Devuelve (score, steps, time, reached_limit) donde reached_limit=True
-    si la partida terminó por tiempo.
-    """
     game = Game(rows, cols)
     while True:
         current_time = game.steps * MOVE_INTERVAL
         if current_time >= time_limit:
-            return game.score, game.steps, time_limit, True  # llegó al límite
+            return game.score, game.steps, time_limit, True
 
         path = agent.compute(game.apple, game.snake)
         if not path:
