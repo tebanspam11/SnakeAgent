@@ -60,10 +60,10 @@ class Environment:
 
         if not self.nextMoveTime: 
             self.control.makeMove(direction)
-            self.nextMoveTime = time.time() + self.moveInterval
+            self.nextMoveTime = time.time() + self.moveInterval + 0.030
         else:
             while time.time() < self.nextMoveTime:
-                time.sleep(0.05) 
+                time.sleep(0.005) 
 
             self.control.makeMove(direction)
             self.nextMoveTime += self.moveInterval

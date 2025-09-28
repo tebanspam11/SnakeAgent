@@ -1,4 +1,5 @@
 import random
+import statistics   # Para media y desviación estándar
 
 from Snake import Snake
 from Agent import Agent
@@ -17,8 +18,6 @@ class Game:
         self.steps = 0
 
     def spawnApple(self):
-        """Generate a new apple in a free cell."""
-
         free_cells = [
             (i, j) for i in range(self.rows) for j in range(self.cols)
             if (i, j) not in self.snake.getBody()
@@ -26,19 +25,17 @@ class Game:
         return random.choice(free_cells) if free_cells else None
 
     def step(self, direction):
-        """Perform one move of the snake in the given direction."""
-
         head = self.snake.getHead()
         dx, dy = directionMap[direction]
         newHead = (head[0] + dx, head[1] + dy)
 
-        # check collisions
+        # colisiones
         if (newHead[0] < 0 or newHead[0] >= self.rows or
             newHead[1] < 0 or newHead[1] >= self.cols or
             newHead in self.snake.getBody()):
             return False
 
-        # check apple eating or normal move
+        # comer manzana o avanzar
         if newHead == self.apple:
             self.snake.move(newHead, grow=True)
             self.apple = self.spawnApple()
@@ -50,48 +47,68 @@ class Game:
         return True
 
 
-def simulate_once(rows, cols, agent):
-    """Simulate a single game and return statistics (score, steps, time)."""
-
+def simulate_once(rows, cols, agent, time_limit=120.0):
+    """
+    Simula una partida.
+    Devuelve (score, steps, time, reached_limit) donde reached_limit=True
+    si la partida terminó por tiempo.
+    """
     game = Game(rows, cols)
-
     while True:
+        current_time = game.steps * MOVE_INTERVAL
+        if current_time >= time_limit:
+            return game.score, game.steps, time_limit, True  # llegó al límite
+
         path = agent.compute(game.apple, game.snake)
-        if not path:  # no path available
+        if not path:
             break
 
         for direction in path:
             alive = game.step(direction)
             if not alive:
-                return game.score, game.steps, game.steps * MOVE_INTERVAL
+                return game.score, game.steps, game.steps * MOVE_INTERVAL, False
+            if game.steps * MOVE_INTERVAL >= time_limit:
+                return game.score, game.steps, time_limit, True
 
-    return game.score, game.steps, game.steps * MOVE_INTERVAL
+    return game.score, game.steps, game.steps * MOVE_INTERVAL, False
 
 
-def simulate_n_games(n, rows=ROWS, cols=COLUMNS):
-    """Run n simulations and return averages."""
-
+def simulate_n_games(n, rows=ROWS, cols=COLUMNS, time_limit=120.0):
     agent = Agent(rows, cols)
 
-    total_score = 0
-    total_steps = 0
-    total_time = 0.0
+    scores = []
+    times = []
+    games_reached_limit = 0
 
     for _ in range(n):
-        score, steps, time_survived = simulate_once(rows, cols, agent)
-        total_score += score
-        total_steps += steps
-        total_time += time_survived
+        score, steps, time_survived, reached_limit = simulate_once(rows, cols, agent, time_limit)
+        scores.append(score)
+        times.append(time_survived)
+        if reached_limit:
+            games_reached_limit += 1
 
-    avg_score = total_score / n
-    avg_steps = total_steps / n
-    avg_time = total_time / n
+    avg_score = statistics.mean(scores)
+    avg_time  = statistics.mean(times)
 
-    print(f"\nAfter {n} games:")
-    print(f"  Average score: {avg_score:.2f}")
-    print(f"  Average steps: {avg_steps:.2f}")
-    print(f"  Average time: {avg_time:.2f} s")
+    std_score = statistics.stdev(scores) if len(scores) > 1 else 0.0
+    std_time  = statistics.stdev(times) if len(times) > 1 else 0.0
 
-    return avg_score, avg_steps, avg_time
+    min_score = min(scores)
+    max_score = max(scores)
+    min_time  = min(times)
+    max_time  = max(times)
 
-simulate_n_games(1000)
+    percent_reached_limit = (games_reached_limit / n) * 100
+
+    print(f"\nAfter {n} games (limit {time_limit}s):")
+    print(f"  Average score: {avg_score:.2f}   Std dev: {std_score:.2f}")
+    print(f"    Min score: {min_score}   Max score: {max_score}")
+    print(f"  Average time:  {avg_time:.2f} s  Std dev: {std_time:.2f}")
+    print(f"    Min time: {min_time:.2f} s   Max time: {max_time:.2f} s")
+    print(f"  % games reaching {time_limit}s: {percent_reached_limit:.1f}%")
+
+    return (avg_score, std_score, min_score, max_score,
+            avg_time,  std_time,  min_time,  max_time,
+            percent_reached_limit)
+
+simulate_n_games(1000, time_limit=120.0)
