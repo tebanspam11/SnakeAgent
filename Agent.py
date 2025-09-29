@@ -141,7 +141,7 @@ class Agent:
 
         return [], 0
 
-    def _a_star(self, target, snake, inverse=False):
+    def _a_star(self, target, snake):
         """
             A* pathfinding algorithm from the snake's head to a target position.
 
@@ -157,9 +157,6 @@ class Agent:
         heapq.heappush(open_set, (0 + self._manhattan(head, target), 0, head, [head]))
         visited = {head}
 
-        if inverse:
-            target = snake.getBody()[-1]
-
         while open_set:
             f, g, current, path = heapq.heappop(open_set)
             if current == target:
@@ -174,7 +171,7 @@ class Agent:
                 nxt = (ni, nj)
                 if self._is_valid_move(nxt, snake, g, body, {}) and nxt not in visited:
                     visited.add(nxt)
-                    h = -self._manhattan(nxt, target) if inverse else self._manhattan(nxt, target)
+                    h = self._manhattan(nxt, target)
                     heapq.heappush(open_set, (g + 1 + h, g + 1, nxt, path + [nxt]))
 
         return [], 0
@@ -218,7 +215,7 @@ class Agent:
         checks = [
             ("BFS", lambda: self._find_path(apple, snake, use_body_hugging=False), 0),
             ("BFS body", lambda: self._find_path(apple, snake, use_body_hugging=True), -0.05),
-            ("A*", lambda: self._a_star(apple, snake, inverse=False), +0.05),
+            ("A*", lambda: self._a_star(apple, snake), +0.05),
         ]
         for tag, finder, delta in checks:
             path, length = finder()
@@ -227,14 +224,6 @@ class Agent:
                 if self._reachable_ratio(body) >= dynamic_threshold + delta:
                     ratio = self._reachable_ratio(body)
                     candidates.append((path, length, ratio, tag))
-
-        if snake_len > total_cells * 0.5:
-            inv_path, inv_len = self._a_star(apple, snake, inverse=True)
-            if inv_path:
-                body = simulate_with_growth(inv_path)
-                if self._reachable_ratio(body) >= dynamic_threshold:
-                    ratio = self._reachable_ratio(body)
-                    candidates.append((inv_path, inv_len, ratio, 'A* inverse'))
 
         if candidates:
             def score(entry):
