@@ -213,15 +213,15 @@ class Agent:
             return body
 
         checks = [
-            ("BFS", lambda: self._find_path(apple, snake, use_body_hugging=False), 0),
-            ("BFS body", lambda: self._find_path(apple, snake, use_body_hugging=True), -0.05),
-            ("A*", lambda: self._a_star(apple, snake), +0.05),
+            ("BFS", lambda: self._find_path(apple, snake, use_body_hugging=False)),
+            ("BFS body", lambda: self._find_path(apple, snake, use_body_hugging=True)),
+            ("A*", lambda: self._a_star(apple, snake)),
         ]
-        for tag, finder, delta in checks:
+        for tag, finder in checks:
             path, length = finder()
             if path:
                 body = simulate_with_growth(path)
-                if self._reachable_ratio(body) >= dynamic_threshold + delta:
+                if self._reachable_ratio(body) >= dynamic_threshold:
                     ratio = self._reachable_ratio(body)
                     candidates.append((path, length, ratio, tag))
 
