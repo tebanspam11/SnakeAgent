@@ -14,7 +14,7 @@ The AI is capable of real-time gameplay, detecting the apple via screen capture 
 
 SnakeAIAgent also includes a simulation module that allows users to run multiple games in a controlled environment, generating performance statistics such as average score, survival time, and percentage of games reaching the time limit.
 
-This project demonstrates a combination of pathfinding algorithms, real-time control, and simulation-based evaluation, making it an advanced example of AI applied to classic games.
+This project demonstrates a combination of pathfinding algorithms, real-time control, and simulation-based evaluation, making it an example of AI applied to classic games.
 
 ---
 
