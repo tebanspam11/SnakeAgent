@@ -10,6 +10,13 @@ pathMap = {(1, 0): "down", (0, 1): "right", (-1, 0): "up", (0, -1): "left"}
 
 class Game:
     def __init__(self, rows, cols):
+        """
+            Initialize a new Snake game.
+
+            :param rows: Number of rows in the game board.
+            :param cols: Number of columns in the game board.
+        """
+
         self.rows = rows
         self.cols = cols
         self.snake = Snake()
@@ -18,6 +25,12 @@ class Game:
         self.steps = 0
 
     def spawnApple(self):
+        """
+            Spawn an apple in a random free cell not occupied by the snake.
+
+            :return: Tuple (row, col) of apple's position or None if no free cells.
+        """
+
         free_cells = [
             (i, j) for i in range(self.rows) for j in range(self.cols)
             if (i, j) not in self.snake.getBody()
@@ -25,6 +38,13 @@ class Game:
         return random.choice(free_cells) if free_cells else None
 
     def step(self, direction):
+        """
+            Advance the game by one move in the given direction.
+
+            :param direction: String ('up', 'down', 'left', 'right') representing snake's move.
+            :return: True if the snake is alive after the move, False if it collides.
+        """
+
         head = self.snake.getHead()
         dx, dy = directionMap[direction]
         newHead = (head[0] + dx, head[1] + dy)
@@ -46,6 +66,16 @@ class Game:
 
 
 def simulate_once(rows, cols, agent, time_limit=120.0):
+    """
+        Simulate a single game using the provided agent.
+
+        :param rows: Number of rows in the game board.
+        :param cols: Number of columns in the game board.
+        :param agent: Agent object to control the snake.
+        :param time_limit: Maximum allowed time in seconds for the game.
+        :return: Tuple (score, steps, time_survived, reached_time_limit)
+    """
+
     game = Game(rows, cols)
     while True:
         current_time = game.steps * MOVE_INTERVAL
@@ -67,6 +97,19 @@ def simulate_once(rows, cols, agent, time_limit=120.0):
 
 
 def simulate_n_games(n, rows=ROWS, cols=COLUMNS, time_limit=120.0):
+    """
+        Simulate multiple games and report statistics.
+
+        :param n: Number of games to simulate.
+        :param rows: Number of rows in the game board.
+        :param cols: Number of columns in the game board.
+        :param time_limit: Maximum allowed time per game in seconds.
+        :return: Tuple containing statistics:
+                 (avg_score, std_score, min_score, max_score,
+                  avg_time,  std_time,  min_time,  max_time,
+                  percent_reached_limit)
+    """
+
     agent = Agent(rows, cols)
 
     scores = []
